@@ -15,5 +15,8 @@ Instale o `lucide-react` para ter acesso aos símbolos na hora de rodar
 o projeto.
 [Comando:] `npm install lucide-react`
 
+Instale o `SweetAlert2` para ter acesso aos alertas na hora de rodar o projeto
+[Comando]: `npm install sweetalert2 sweetalert2-react-content`
+
 Para rodar o projeto:
 [Comando:] `npm run dev`

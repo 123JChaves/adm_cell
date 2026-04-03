@@ -28,7 +28,7 @@ const Sidebar = () => {
                     </nav>
                     <div className="mt-auto border-t border-gray-200 pt-4">
                     <Link 
-                        href="/contato/centralDeAjuda"
+                        href="/suporte"
                         className="flex items-center space-x-3 p-3 text-gray-500 hover:text-purple-600 transition-colors"
                     >
                         <HelpCircle size={20} />
