@@ -1,10 +1,18 @@
-import axios, { AxiosInstance } from "axios";
+import axios from "axios";
+import Cookies from 'js-cookie';
 
-const instancia: AxiosInstance = axios.create({
+const instancia = axios.create({
     baseURL: "http://localhost:8081",
-    headers: {
-        "Content-Type": "application/json"
+});
+
+instancia.interceptors.request.use((config) => {
+    const token = Cookies.get('token');
+    
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    return config;
 });
 
 export default instancia;

@@ -1,6 +1,7 @@
 'use client'
 import instancia from "@/src/service/api";
 import Swal from "sweetalert2";
+import { Trash2 } from "lucide-react";
 
 interface DeleteButtonProps {
     id: string;
@@ -11,7 +12,6 @@ interface DeleteButtonProps {
     className?: string; // 1. Adicionado aqui na Interface
 }
 
-// 2. Adicionado 'className' aqui na desestruturação
 const DeleteButton = ({ id, router, onSuccess, setError, setSuccess, className }: DeleteButtonProps) => {
 
     const handleDelete = async () => {
@@ -45,11 +45,33 @@ const DeleteButton = ({ id, router, onSuccess, setError, setSuccess, className }
     return (
         <button 
             onClick={handleDelete}
-            className={`bg-red-500 text-white rounded-md hover:bg-red-600 font-bold flex items-center justify-center ${className}`}
+            
+            className={`
+                group/btn flex items-center gap-2 px-3 py-2 
+                bg-transparent hover:bg-red-50 
+                active:bg-red-100 rounded-lg 
+                transition-all duration-200
+                ${className}
+            `}
+            title="Excluir Registro"
         >
-            Excluir
+            <Trash2 
+                className="w-4 h-4 text-gray-700 
+                group-hover/btn:text-red-700 
+                group-active/btn:text-red-800 
+                transition-colors duration-200" 
+            />
+            <span 
+                className="md:hidden lg:inline text-gray-700 
+                group-hover/btn:text-red-700 
+                group-active/btn:text-red-800 
+                transition-colors duration-200 font-medium text-sm"
+            >
+                Excluir
+            </span>
         </button>
     );
+
 }
 
 

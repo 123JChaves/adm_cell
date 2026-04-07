@@ -20,3 +20,9 @@ Instale o `SweetAlert2` para ter acesso aos alertas na hora de rodar o projeto
 
 Para rodar o projeto:
 [Comando:] `npm run dev`
+
+Instale uma biblioteca logica que manipula os cookies no navegador.
+[Comando:] `npm install js-cookie`
+
+Instale as declarações de tipo para que o TypeScript entenda os comandos da biblioteca e pare de exibir o erro "Cannot find module".
+[Comando:] `npm install -D @types/js-cookie`
