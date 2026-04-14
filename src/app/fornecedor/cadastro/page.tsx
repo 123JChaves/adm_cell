@@ -7,13 +7,13 @@ import Footer from "@/src/components/Footer";
 import instancia from "@/src/service/api";
 import AlertMessage from "@/src/utils/Alert";
 import EntradaComSugestao from "@/src/utils/AutoComplete";
+import axios from "axios";
 import { 
     Users, Save, ArrowLeft, ListFilter, Building2, 
     Fingerprint, FileText, MapPinned, Hash 
 } from "lucide-react";
 import Link from "next/link";
 
-// Interfaces Estritas para Tipagem
 interface EntidadeGeograficaBase {
     id: number;
     nome: string;
@@ -24,180 +24,181 @@ interface EntidadeGeograficaBase {
 }
 
 const CadastroFornecedor = () => {
-    // ESTADOS DE CONTROLE DE FEEDBACK
+    // ESTADOS DE CONTROLE DE FEEDBACK E INTERFACE
     const [estaCarregandoProcessamento, setEstaCarregandoProcessamento] = useState<boolean>(false);
     const [mensagemDeErroGeral, setMensagemDeErroGeral] = useState<string | null>(null);
-    const [mensagemDeSucesso, setMensagemDeSucesso] = useState<string | null>(null);
+    const [mensagemDeSucessoGeral, setMensagemDeSucessoGeral] = useState<string | null>(null);
     const [dicionarioErrosDosCampos, setDicionarioErrosDosCampos] = useState<Record<string, string>>({});
 
-    // ESTADOS DO FORNECEDOR (DADOS JURÍDICOS)
-    const [nomeFantasiaFornecedor, setNomeFantasiaFornecedor] = useState<string>("");
-    const [razaoSocialFornecedor, setrazaoSocialFornecedor] = useState<string>("");
-    const [cnpjFornecedor, setCnpjFornecedor] = useState<string>("");
+    // ESTADOS DOS DADOS JURÍDICOS DO FORNECEDOR
+    const [nomeFantasiaDoFornecedor, setNomeFantasiaDoFornecedor] = useState<string>("");
+    const [razaoSocialDoFornecedor, setRazaoSocialDoFornecedor] = useState<string>("");
+    const [cnpjDoFornecedor, setCnpjDoFornecedor] = useState<string>("");
 
-    // ESTADOS DO ENDEREÇO (Endereco)
-    const [textoEndereco, setTextoEndereco] = useState<string>("");
-    const [identificadorEndereco, setIdentificadorEndereco] = useState<number | null>(null);
-    const [numeroDoEndereco, setNumeroDoEndereco] = useState<string>("");
+    // ESTADOS DO ENDEREÇO FÍSICO
+    const [textoDoNomeDaRua, setTextoDoNomeDaRua] = useState<string>("");
+    const [identificadorDoEnderecoNoBanco, setIdentificadorDoEnderecoNoBanco] = useState<number | null>(null);
+    const [numeroDoLogradouro, setNumeroDoLogradouro] = useState<string>("");
 
-    // ESTADOS GEOGRÁFICOS (TEXTO E IDENTIFICADOR)
-    const [textoBairro, setTextoBairro] = useState<string>("");
-    const [identificadorBairro, setIdentificadorBairro] = useState<number | null>(null);
-    const [textoCidade, setTextoCidade] = useState<string>("");
-    const [identificadorCidade, setIdentificadorCidade] = useState<number | null>(null);
-    const [textoEstado, setTextoEstado] = useState<string>("");
-    const [identificadorEstado, setIdentificadorEstado] = useState<number | null>(null);
-    const [textoPais, setTextoPais] = useState<string>("");
-    const [identificadorPais, setIdentificadorPais] = useState<number | null>(null);
+    // ESTADOS DA HIERARQUIA GEOGRÁFICA
+    const [textoDoBairro, setTextoDoBairro] = useState<string>("");
+    const [identificadorDoBairroNoBanco, setIdentificadorDoBairroNoBanco] = useState<number | null>(null);
+    const [textoDaCidade, setTextoDaCidade] = useState<string>("");
+    const [identificadorDaCidadeNoBanco, setIdentificadorDaCidadeNoBanco] = useState<number | null>(null);
+    const [textoDoEstado, setTextoDoEstado] = useState<string>("");
+    const [identificadorDoEstadoNoBanco, setIdentificadorDoEstadoNoBanco] = useState<number | null>(null);
+    const [textoDoPais, setTextoDoPais] = useState<string>("");
+    const [identificadorDoPaisNoBanco, setIdentificadorDoPaisNoBanco] = useState<number | null>(null);
 
-    // ESTADOS DAS LISTAS DO BANCO DE DADOS (LEITURA)
-    const [bancoDeDadosPaises, setBancoDeDadosPaises] = useState<EntidadeGeograficaBase[]>([]);
-    const [bancoDeDadosEstados, setBancoDeDadosEstados] = useState<EntidadeGeograficaBase[]>([]);
-    const [bancoDeDadosCidades, setBancoDeDadosCidades] = useState<EntidadeGeograficaBase[]>([]);
-    const [bancoDeDadosBairros, setBancoDeDadosBairros] = useState<EntidadeGeograficaBase[]>([]);
-    const [bancoDeDadosEnderecos, setBancoDeDadosEnderecos] = useState<EntidadeGeograficaBase[]>([]);
+    // ESTADOS DAS LISTAS DE APOIO PARA SUGESTÕES
+    const [listaDePaisesDoBanco, setListaDePaisesDoBanco] = useState<EntidadeGeograficaBase[]>([]);
+    const [listaDeEstadosDoBanco, setListaDeEstadosDoBanco] = useState<EntidadeGeograficaBase[]>([]);
+    const [listaDeCidadesDoBanco, setListaDeCidadesDoBanco] = useState<EntidadeGeograficaBase[]>([]);
+    const [listaDeBairrosDoBanco, setListaDeBairrosDoBanco] = useState<EntidadeGeograficaBase[]>([]);
+    const [listaDeEnderecosDoBanco, setListaDeEnderecosDoBanco] = useState<EntidadeGeograficaBase[]>([]);
 
-    // CARGA INICIAL PARA SINCRONIZAÇÃO DAS LISTAS
     useEffect(() => {
-        const carregarListasDeApoioGeograficas = async () => {
+        const carregarTodasAsListasGeograficasParaSugestao = async () => {
             try {
                 const [respostaPaises, respostaEstados, respostaCidades, respostaBairros, respostaEnderecos] = await Promise.all([
-                    instancia.get<EntidadeGeograficaBase[]>("/paises"),
-                    instancia.get<EntidadeGeograficaBase[]>("/estados"),
-                    instancia.get<EntidadeGeograficaBase[]>("/cidades"),
-                    instancia.get<EntidadeGeograficaBase[]>("/bairros"),
-                    instancia.get<EntidadeGeograficaBase[]>("/enderecos"),
+                    instancia.get("/paises"), 
+                    instancia.get("/estados"),
+                    instancia.get("/cidades"), 
+                    instancia.get("/bairros"),
+                    instancia.get("/enderecos"),
                 ]);
-                setBancoDeDadosPaises(respostaPaises.data);
-                setBancoDeDadosEstados(respostaEstados.data);
-                setBancoDeDadosCidades(respostaCidades.data);
-                setBancoDeDadosBairros(respostaBairros.data);
-                setBancoDeDadosEnderecos(respostaEnderecos.data);
+                setListaDePaisesDoBanco(respostaPaises.data); 
+                setListaDeEstadosDoBanco(respostaEstados.data);
+                setListaDeCidadesDoBanco(respostaCidades.data); 
+                setListaDeBairrosDoBanco(respostaBairros.data);
+                setListaDeEnderecosDoBanco(respostaEnderecos.data);
             } catch {
-                setMensagemDeErroGeral("Houve uma falha ao sincronizar as listas de endereços.");
+                setMensagemDeErroGeral("Falha ao sincronizar as listas geográficas do servidor.");
             }
         };
-        carregarListasDeApoioGeograficas();
+        carregarTodasAsListasGeograficasParaSugestao();
     }, []);
 
-    const formatarCNPJ = (valorInformado: string) => {
-
-    const apenasNumerosCnpj = valorInformado.replace(/\D/g, "").slice(0, 14);
-
-    return apenasNumerosCnpj
-        .replace(/^(\d{2})(\d)/, "$1.$2")              // 00.
-        .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")  // 00.000.
-        .replace(/\.(\d{3})(\d)/, ".$1/$2")            // 00.000.000/
-        .replace(/(\d{4})(\d{1,2})$/, "$1-$2");        // 00.000.000/0000-00
+    const aplicarMascaraDeCnpjParaVisualizacao = (valorOriginal: string) => {
+        const apenasDigitosNumericos = valorOriginal.replace(/\D/g, "").slice(0, 14);
+        return apenasDigitosNumericos.replace(/^(\d{2})(\d)/, "$1.$2")
+                .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+                .replace(/\.(\d{3})(\d)/, ".$1/$2")
+                .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
     };
 
-    // FUNÇÕES DE FILTRAGEM E MANIPULAÇÃO
-    const filtrarSugestoesPeloNome = (listaOriginal: EntidadeGeograficaBase[], termoDeBusca: string) => {
-        if (termoDeBusca.length < 1) return [];
-        return listaOriginal.filter((item) =>
-            item.nome.toLowerCase().includes(termoDeBusca.toLowerCase())
-        );
+    const filtrarListaDeSugestoesPeloTermoDigitado = (listaParaFiltrar: EntidadeGeograficaBase[], termoDeBusca: string) => {
+        return termoDeBusca.length < 1 ? [] : listaParaFiltrar.filter(item => item.nome.toLowerCase().includes(termoDeBusca.toLowerCase()));
     };
 
-    const gerenciarMudancaNoCampoComSugestao = (
-        valorInformado: string, 
-        listaDeDados: EntidadeGeograficaBase[], 
-        atualizarTexto: (valor: string) => void, 
-        atualizarIdentificador: (id: number | null) => void,
-        nivelParaLimpeza?: string
-    ) => {
-        atualizarTexto(valorInformado);
-        const registroEncontrado = listaDeDados.find((item) => item.nome.toLowerCase() === valorInformado.toLowerCase());
-        atualizarIdentificador(registroEncontrado ? registroEncontrado.id : null);
-
-        // Reset em cascata para manter a integridade hierárquica
-        if (nivelParaLimpeza === "pais") { setTextoEstado(""); setIdentificadorEstado(null); }
-        if (nivelParaLimpeza === "estado") { setTextoCidade(""); setIdentificadorCidade(null); }
-        if (nivelParaLimpeza === "cidade") { setTextoBairro(""); setIdentificadorBairro(null); }
-        if (nivelParaLimpeza === "bairro") { setTextoEndereco(""); setIdentificadorEndereco(null); }
+    const gerenciarMudancaNoCampoDeAutoComplete = (valorDigitado: string, listaReferencia: EntidadeGeograficaBase[], atualizarTexto: (valor: string) => void, atualizarIdentificador: (id: number | null) => void, nivelHierarquico?: string) => {
+        atualizarTexto(valorDigitado);
+        const itemEncontradoNaLista = listaReferencia.find(item => item.nome.toLowerCase() === valorDigitado.toLowerCase());
+        atualizarIdentificador(itemEncontradoNaLista ? itemEncontradoNaLista.id : null);
+        
+        if (nivelHierarquico === "pais") { setTextoDoEstado(""); setIdentificadorDoEstadoNoBanco(null); }
+        if (nivelHierarquico === "estado") { setTextoDaCidade(""); setIdentificadorDaCidadeNoBanco(null); }
+        if (nivelHierarquico === "cidade") { setTextoDoBairro(""); setIdentificadorDoBairroNoBanco(null); }
+        if (nivelHierarquico === "bairro") { setTextoDoNomeDaRua(""); setIdentificadorDoEnderecoNoBanco(null); }
     };
 
-    const processarEnvioDoFormulario = async (eventoDeSubmissao: FormEvent<HTMLFormElement>) => {
-    eventoDeSubmissao.preventDefault();
-    setDicionarioErrosDosCampos({});
-    setMensagemDeErroGeral(null);
+    const processarEnvioDoFormularioDeCadastro = async (eventoDeEnvio: FormEvent<HTMLFormElement>) => {
+        eventoDeEnvio.preventDefault();
+        setDicionarioErrosDosCampos({});
+        setMensagemDeErroGeral(null);
+        setMensagemDeSucessoGeral(null);
 
-    const errosDetectados: Record<string, string> = {};
+        const errosDetectadosNaValidacao: Record<string, string> = {};
+        if (!razaoSocialDoFornecedor.trim()) errosDetectadosNaValidacao.razaoSocial = "A Razão Social é obrigatória.";
+        if (!nomeFantasiaDoFornecedor.trim()) errosDetectadosNaValidacao.nomeFantasia = "O Nome Fantasia é obrigatório.";
+        if (cnpjDoFornecedor.length < 18) errosDetectadosNaValidacao.cnpj = "O CNPJ informado é inválido.";
+        if (!textoDoPais.trim()) errosDetectadosNaValidacao.Pais = "O País é obrigatório.";
+        if (!textoDoEstado.trim()) errosDetectadosNaValidacao.Estado = "O Estado é obrigatório.";
+        if (!textoDaCidade.trim()) errosDetectadosNaValidacao.Cidade = "A Cidade é obrigatória.";
+        if (!textoDoBairro.trim()) errosDetectadosNaValidacao.Bairro = "O Bairro é obrigatório.";
+        if (!textoDoNomeDaRua.trim()) errosDetectadosNaValidacao.Endereco = "O Endereço é obrigatório.";
+        if (!numeroDoLogradouro.trim()) errosDetectadosNaValidacao.numero = "O número é obrigatório.";
 
-    // Validações usando os nomes exatos dos seus states
-    if (!razaoSocialFornecedor.trim()) errosDetectados.razaoSocial = "A Razão Social é obrigatória.";
-    if (!nomeFantasiaFornecedor.trim()) errosDetectados.nomeFantasia = "O Nome Fantasia é obrigatório.";
-    if (!cnpjFornecedor.trim()) errosDetectados.cnpj = "O CNPJ é obrigatório.";
-    if (!textoPais.trim()) errosDetectados.Pais = "O País é obrigatório.";
-    if (!textoEstado.trim()) errosDetectados.Estado = "O Estado é obrigatório.";
-    if (!textoCidade.trim()) errosDetectados.Cidade = "A Cidade é obrigatória.";
-    if (!textoBairro.trim()) errosDetectados.Bairro = "O Bairro é obrigatório.";
-    if (!textoEndereco.trim()) errosDetectados.Endereco = "O Endereço é obrigatório.";
-    if (!numeroDoEndereco.trim()) errosDetectados.numero = "O Número é obrigatório.";
+        if (Object.keys(errosDetectadosNaValidacao).length > 0) {
+            setDicionarioErrosDosCampos(errosDetectadosNaValidacao);
+            setMensagemDeErroGeral("Por favor, preencha os campos obrigatórios destacados.");
+            return;
+        }
 
-    if (Object.keys(errosDetectados).length > 0) {
-        setDicionarioErrosDosCampos(errosDetectados);
-        setMensagemDeErroGeral("Por favor, preencha os campos obrigatórios destacados.");
-        return;
-    }
+        setEstaCarregandoProcessamento(true);
 
-    setEstaCarregandoProcessamento(true);
-
-        const payloadDeCadastro = {
-            nomeFantasia: nomeFantasiaFornecedor.trim(),
-            razaoSocial: razaoSocialFornecedor.trim(),
-            cnpj: cnpjFornecedor.replace(/\D/g, ""),
-            enderecos: [
-                {
-                    nome: textoEndereco,
-                    numero: Number(numeroDoEndereco),
-                    bairro: {
-                        id: identificadorBairro,
-                        nome: textoBairro,
-                        cidade: {
-                            id: identificadorCidade,
-                            nome: textoCidade,
-                            estado: {
-                                id: identificadorEstado,
-                                nome: textoEstado,
-                                pais: { 
-                                    id: identificadorPais, 
-                                    nome: textoPais 
-                                }
-                            }
+        const objetoParaEnvioAoServidor = {
+            nomeFantasia: nomeFantasiaDoFornecedor.trim(),
+            razaoSocial: razaoSocialDoFornecedor.trim(),
+            cnpj: cnpjDoFornecedor.replace(/\D/g, ""),
+            enderecos: [{
+                nome: textoDoNomeDaRua,
+                numero: Number(numeroDoLogradouro),
+                bairro: {
+                    id: identificadorDoBairroNoBanco,
+                    nome: textoDoBairro,
+                    cidade: {
+                        id: identificadorDaCidadeNoBanco,
+                        nome: textoDaCidade,
+                        estado: {
+                            id: identificadorDoEstadoNoBanco,
+                            nome: textoDoEstado,
+                            pais: { id: identificadorDoPaisNoBanco, nome: textoDoPais }
                         }
                     }
                 }
-            ]
+            }]
         };
 
         try {
-            await instancia.post("/fornecedor", payloadDeCadastro);
-            setMensagemDeSucesso("Fornecedor cadastrado com sucesso!");
-            
-            // Limpeza dos campos após sucesso
-            setNomeFantasiaFornecedor("");
-            setrazaoSocialFornecedor("");
-            setCnpjFornecedor("");
-            setTextoEndereco("");
-            setNumeroDoEndereco("");
-            setTextoBairro("");
-            setTextoCidade("");
-            setTextoEstado("");
-            setTextoPais("");
-        } catch (erroCapturado: any) {
-            setMensagemDeErroGeral(erroCapturado.response?.data?.message || "Erro ao processar o cadastro.");
+            const respostaDoServidor = await instancia.post("/fornecedor", objetoParaEnvioAoServidor);
+            setMensagemDeSucessoGeral(respostaDoServidor.data.message || "Fornecedor cadastrado com sucesso!");
+            limparTodosOsCamposDoFormulario();
+        } catch (erroCapturadoNoServidor: any) {
+            setMensagemDeErroGeral(erroCapturadoNoServidor.response?.data?.message || "Erro ao processar o cadastro.");
         } finally {
             setEstaCarregandoProcessamento(false);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({ top: 0, behavior: "smooth" });
         }
     };
 
-    return (
+    const limparTodosOsCamposDoFormulario = () => {
+        setNomeFantasiaDoFornecedor(""); 
+        setRazaoSocialDoFornecedor(""); 
+        setCnpjDoFornecedor("");
+        setTextoDoNomeDaRua(""); 
+        setNumeroDoLogradouro(""); 
+        setTextoDoBairro("");
+        setTextoDaCidade(""); 
+        setTextoDoEstado(""); 
+        setTextoDoPais("");
+        setIdentificadorDoBairroNoBanco(null); 
+        setIdentificadorDaCidadeNoBanco(null); 
+        setIdentificadorDoEstadoNoBanco(null); 
+        setIdentificadorDoPaisNoBanco(null);
+    };
+
+        return (
         <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
             <header className="sticky top-0 z-50 w-full">
                 <Menu />
             </header>
+
+            {/* ALERTAS UNIFICADOS - Com onClose para resetar o estado e permitir novos disparos */}
+            {mensagemDeErroGeral && (
+                <AlertMessage 
+                    type="error" 
+                    message={mensagemDeErroGeral} 
+                    onClose={() => setMensagemDeErroGeral(null)} 
+                />
+            )}
+            {mensagemDeSucessoGeral && (
+                <AlertMessage 
+                    type="success" 
+                    message={mensagemDeSucessoGeral} 
+                    onClose={() => setMensagemDeSucessoGeral(null)} 
+                />
+            )}
 
             <div className="flex flex-1">
                 <Sidebar />
@@ -229,21 +230,12 @@ const CadastroFornecedor = () => {
                                     <ListFilter className="w-4 h-4 text-indigo-600 group-hover:scale-110 transition-transform" />
                                     Listar Fornecedores
                                 </Link>
-                                <Link href="/dashboard" className="p-2.5 text-slate-400 hover:text-indigo-600 transition-colors">
-                                    <ArrowLeft className="w-5 h-5" />
-                                </Link>
                             </div>
                         </header>
 
-                        {/* Alertas de Feedback */}
-                        <div className="mb-8">
-                            {mensagemDeErroGeral && <AlertMessage type="error" message={mensagemDeErroGeral} />}
-                            {mensagemDeSucesso && <AlertMessage type="success" message={mensagemDeSucesso} />}
-                        </div>
-
                         {/* Formulário Principal */}
                         <form 
-                            onSubmit={processarEnvioDoFormulario} 
+                            onSubmit={processarEnvioDoFormularioDeCadastro} 
                             className="bg-white border border-slate-200 shadow-sm rounded-[2rem] p-8 md:p-12 space-y-10"
                         >
                             {/* SEÇÃO: DADOS ORGANIZACIONAIS */}
@@ -260,8 +252,8 @@ const CadastroFornecedor = () => {
                                         <label className="font-bold text-sm text-slate-700 ml-1">Nome Fantasia:</label>
                                         <input 
                                             type="text"
-                                            value={nomeFantasiaFornecedor} 
-                                            onChange={(evento) => setNomeFantasiaFornecedor(evento.target.value)}
+                                            value={nomeFantasiaDoFornecedor} 
+                                            onChange={(evento) => setNomeFantasiaDoFornecedor(evento.target.value)}
                                             className={`w-full p-4 bg-slate-50 border ${dicionarioErrosDosCampos.nomeFantasia ? 'border-red-500' : 'border-slate-200'} rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all`}
                                             placeholder="Ex: Tech Solutions"
                                         />
@@ -273,10 +265,10 @@ const CadastroFornecedor = () => {
                                         <input 
                                             type="text"
                                             placeholder="00.000.000/0000-00"
-                                            value={cnpjFornecedor} 
+                                            value={cnpjDoFornecedor} 
                                             onChange={(eventoDeDigitacao) => {
-                                                const valorFormatado = formatarCNPJ(eventoDeDigitacao.target.value);
-                                                setCnpjFornecedor(valorFormatado);
+                                                const valorFormatado = aplicarMascaraDeCnpjParaVisualizacao(eventoDeDigitacao.target.value);
+                                                setCnpjDoFornecedor(valorFormatado);
                                                 if (dicionarioErrosDosCampos.cnpj) {
                                                     setDicionarioErrosDosCampos((errosAnteriores) => ({ ...errosAnteriores, cnpj: "" }));
                                                 }
@@ -290,8 +282,8 @@ const CadastroFornecedor = () => {
                                         <label className="font-bold text-sm text-slate-700 ml-1">Razão Social:</label>
                                         <input 
                                             type="text"
-                                            value={razaoSocialFornecedor} 
-                                            onChange={(evento) => setrazaoSocialFornecedor(evento.target.value)}
+                                            value={razaoSocialDoFornecedor} 
+                                            onChange={(evento) => setRazaoSocialDoFornecedor(evento.target.value)}
                                             className={`w-full p-4 bg-slate-50 border ${dicionarioErrosDosCampos.razaoSocial ? 'border-red-500' : 'border-slate-200'} rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all`}
                                             placeholder="Nome oficial da empresa"
                                         />
@@ -312,81 +304,90 @@ const CadastroFornecedor = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <EntradaComSugestao
                                         rotulo="País"
-                                        valor={textoPais}
-                                        listaDeSugestoes={filtrarSugestoesPeloNome(bancoDeDadosPaises, textoPais)}
-                                        aoAlterarValor={(valor) => gerenciarMudancaNoCampoComSugestao(valor, bancoDeDadosPaises, setTextoPais, setIdentificadorPais, "pais")}
+                                        valor={textoDoPais}
+                                        listaDeSugestoes={filtrarListaDeSugestoesPeloTermoDigitado(listaDePaisesDoBanco, textoDoPais)}
+                                        aoAlterarValor={(valor) => gerenciarMudancaNoCampoDeAutoComplete(valor, listaDePaisesDoBanco, setTextoDoPais, setIdentificadorDoPaisNoBanco, "pais")}
                                         aoSelecionarItem={(item) => {
-                                            setTextoPais(item.nome);
-                                            setIdentificadorPais(item.id);
-                                            setTextoEstado("");
-                                            setIdentificadorEstado(null);
+                                            setTextoDoPais(item.nome);
+                                            setIdentificadorDoPaisNoBanco(item.id);
+                                            setTextoDoEstado("");
+                                            setIdentificadorDoEstadoNoBanco(null);
                                         }}
-                                        ehNovoRegistro={!identificadorPais && textoPais.length > 0}
+                                        ehNovoRegistro={!identificadorDoPaisNoBanco && textoDoPais.length > 0}
                                         textoDeFundo="Procure o país..."
                                         mensagemDeErro={dicionarioErrosDosCampos.Pais}
                                     />
 
                                     <EntradaComSugestao 
                                         rotulo="Estado" 
-                                        valor={textoEstado} 
-                                        listaDeSugestoes={filtrarSugestoesPeloNome(bancoDeDadosEstados.filter((estado) => estado.pais?.id === identificadorPais), textoEstado)}
-                                        aoAlterarValor={(valor) => gerenciarMudancaNoCampoComSugestao(valor, bancoDeDadosEstados, setTextoEstado, setIdentificadorEstado, "estado")}
+                                        valor={textoDoEstado} 
+                                        listaDeSugestoes={filtrarListaDeSugestoesPeloTermoDigitado(
+                                            listaDeEstadosDoBanco.filter((estado) => estado.pais?.id === identificadorDoPaisNoBanco), 
+                                            textoDoEstado
+                                        )}
+                                        aoAlterarValor={(valor) => gerenciarMudancaNoCampoDeAutoComplete(valor, listaDeEstadosDoBanco, setTextoDoEstado, setIdentificadorDoEstadoNoBanco, "estado")}
                                         aoSelecionarItem={(item) => { 
-                                            setTextoEstado(item.nome); 
-                                            setIdentificadorEstado(item.id); 
-                                            setTextoCidade(""); 
-                                            setIdentificadorCidade(null);
+                                            setTextoDoEstado(item.nome); 
+                                            setIdentificadorDoEstadoNoBanco(item.id); 
+                                            setTextoDaCidade(""); 
+                                            setIdentificadorDaCidadeNoBanco(null);
                                         }}
-                                        ehNovoRegistro={!identificadorEstado && textoEstado.length > 0}
+                                        ehNovoRegistro={!identificadorDoEstadoNoBanco && textoDoEstado.length > 0}
                                         textoDeFundo="Procure o estado..."
                                         mensagemDeErro={dicionarioErrosDosCampos.Estado}
                                     />
 
                                     <EntradaComSugestao 
                                         rotulo="Cidade" 
-                                        valor={textoCidade} 
-                                        listaDeSugestoes={filtrarSugestoesPeloNome(bancoDeDadosCidades.filter((cidade) => cidade.estado?.id === identificadorEstado), textoCidade)}
-                                        aoAlterarValor={(valor) => gerenciarMudancaNoCampoComSugestao(valor, bancoDeDadosCidades, setTextoCidade, setIdentificadorCidade, "cidade")}
+                                        valor={textoDaCidade} 
+                                        listaDeSugestoes={filtrarListaDeSugestoesPeloTermoDigitado(
+                                            listaDeCidadesDoBanco.filter((cidade) => cidade.estado?.id === identificadorDoEstadoNoBanco), 
+                                            textoDaCidade
+                                        )}
+                                        aoAlterarValor={(valor) => gerenciarMudancaNoCampoDeAutoComplete(valor, listaDeCidadesDoBanco, setTextoDaCidade, setIdentificadorDaCidadeNoBanco, "cidade")}
                                         aoSelecionarItem={(item) => { 
-                                            setTextoCidade(item.nome); 
-                                            setIdentificadorCidade(item.id); 
-                                            setTextoBairro(""); 
-                                            setIdentificadorBairro(null);
+                                            setTextoDaCidade(item.nome); 
+                                            setIdentificadorDaCidadeNoBanco(item.id); 
+                                            setTextoDoBairro(""); 
+                                            setIdentificadorDoBairroNoBanco(null);
                                         }}
-                                        ehNovoRegistro={!identificadorCidade && textoCidade.length > 0}
+                                        ehNovoRegistro={!identificadorDaCidadeNoBanco && textoDaCidade.length > 0}
                                         textoDeFundo="Procure a cidade..."
                                         mensagemDeErro={dicionarioErrosDosCampos.Cidade}
                                     />
 
                                     <EntradaComSugestao
                                         rotulo="Bairro" 
-                                        valor={textoBairro} 
-                                        listaDeSugestoes={filtrarSugestoesPeloNome(bancoDeDadosBairros.filter((bairro) => bairro.cidade?.id === identificadorCidade), textoBairro)}
-                                        aoAlterarValor={(valor) => gerenciarMudancaNoCampoComSugestao(valor, bancoDeDadosBairros, setTextoBairro, setIdentificadorBairro, "bairro")}
+                                        valor={textoDoBairro} 
+                                        listaDeSugestoes={filtrarListaDeSugestoesPeloTermoDigitado(
+                                            listaDeBairrosDoBanco.filter((bairro) => bairro.cidade?.id === identificadorDaCidadeNoBanco), 
+                                            textoDoBairro
+                                        )}
+                                        aoAlterarValor={(valor) => gerenciarMudancaNoCampoDeAutoComplete(valor, listaDeBairrosDoBanco, setTextoDoBairro, setIdentificadorDoBairroNoBanco, "bairro")}
                                         aoSelecionarItem={(item) => { 
-                                            setTextoBairro(item.nome); 
-                                            setIdentificadorBairro(item.id); 
-                                            setTextoEndereco(""); 
-                                            setIdentificadorEndereco(null);
+                                            setTextoDoBairro(item.nome); 
+                                            setIdentificadorDoBairroNoBanco(item.id); 
+                                            setTextoDoNomeDaRua(""); 
+                                            setIdentificadorDoEnderecoNoBanco(null);
                                         }}
-                                        ehNovoRegistro={!identificadorBairro && textoBairro.length > 0}
+                                        ehNovoRegistro={!identificadorDoBairroNoBanco && textoDoBairro.length > 0}
                                         textoDeFundo="Procure o bairro..."
                                         mensagemDeErro={dicionarioErrosDosCampos.Bairro}
                                     />
 
                                     <EntradaComSugestao 
                                         rotulo="Rua / Avenida (Endereço)" 
-                                        valor={textoEndereco} 
-                                        listaDeSugestoes={filtrarSugestoesPeloNome(
-                                            bancoDeDadosEnderecos.filter((endereco) => endereco.bairro?.id === identificadorBairro), 
-                                            textoEndereco
+                                        valor={textoDoNomeDaRua} 
+                                        listaDeSugestoes={filtrarListaDeSugestoesPeloTermoDigitado(
+                                            listaDeEnderecosDoBanco.filter((endereco) => endereco.bairro?.id === identificadorDoBairroNoBanco), 
+                                            textoDoNomeDaRua
                                         )}
-                                        aoAlterarValor={(valor) => gerenciarMudancaNoCampoComSugestao(valor, bancoDeDadosEnderecos, setTextoEndereco, setIdentificadorEndereco)}
+                                        aoAlterarValor={(valor) => gerenciarMudancaNoCampoDeAutoComplete(valor, listaDeEnderecosDoBanco, setTextoDoNomeDaRua, setIdentificadorDoEnderecoNoBanco)}
                                         aoSelecionarItem={(item) => { 
-                                            setTextoEndereco(item.nome); 
-                                            setIdentificadorEndereco(item.id); 
+                                            setTextoDoNomeDaRua(item.nome); 
+                                            setIdentificadorDoEnderecoNoBanco(item.id); 
                                         }}
-                                        ehNovoRegistro={!identificadorEndereco && textoEndereco.length > 0}
+                                        ehNovoRegistro={!identificadorDoEnderecoNoBanco && textoDoNomeDaRua.length > 0}
                                         textoDeFundo="Nome da rua..."
                                         mensagemDeErro={dicionarioErrosDosCampos.Endereco}
                                     />
@@ -394,9 +395,9 @@ const CadastroFornecedor = () => {
                                     <div className="flex flex-col gap-2">
                                         <label className="font-bold text-sm text-slate-700 ml-1">Número:</label>
                                         <input 
-                                            type="number"
-                                            value={numeroDoEndereco} 
-                                            onChange={(evento) => setNumeroDoEndereco(evento.target.value)}
+                                            type="text"
+                                            value={numeroDoLogradouro} 
+                                            onChange={(evento) => setNumeroDoLogradouro(evento.target.value)}
                                             className={`w-full p-4 bg-slate-50 border ${dicionarioErrosDosCampos.numero ? 'border-red-500' : 'border-slate-200'} rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all`}
                                             placeholder="Ex: 123"
                                         />

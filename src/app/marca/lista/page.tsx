@@ -66,7 +66,7 @@ const ListaDeMarcas = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
-            <Menu />
+            <header className="sticky top-0 z-50 w-full"><Menu /></header>
             <div className="flex flex-1">
                 <Sidebar />
 
@@ -157,7 +157,7 @@ const ListaDeMarcas = () => {
                                                 </Link>
 
                                                 <Link 
-                                                    href={`/marca/${marca.id}/editar`} 
+                                                    href={`/marca/${marca.id}/edicao`} 
                                                     className="group/btn flex items-center gap-2 px-3 py-2 text-slate-600 hover:bg-amber-50 rounded-lg transition-all duration-300"
                                                     title="Editar Marca"
                                                 >

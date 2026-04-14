@@ -45,6 +45,8 @@ const CadastroMarca = () => {
 
     const processarEnvioFormulario = async (eventoForm: React.FormEvent<HTMLFormElement>): Promise<void> => {
         eventoForm.preventDefault();
+        
+        // Reset de estados para permitir novos alertas
         setErrosValidacao({});   
         setMensagemErro(null); 
         setMensagemSucesso(null);
@@ -67,6 +69,8 @@ const CadastroMarca = () => {
 
         if (Object.keys(novosErros).length > 0) {
             setErrosValidacao(novosErros);
+            // Dispara o alerta para erro de validação local
+            setMensagemErro(Object.values(novosErros)[0]); 
             return;
         }
 
@@ -78,7 +82,7 @@ const CadastroMarca = () => {
                 ativo: estaAtivo 
             });
             
-            setMensagemSucesso(respostaPost.data.message);
+            setMensagemSucesso(respostaPost.data.message || "Marca cadastrada com sucesso!");
             setNome("");
             setEstaAtivo(true);
             
@@ -99,7 +103,23 @@ const CadastroMarca = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
-            <Menu />
+            {/* ALERTAS UNIFICADOS NO TOPO */}
+            {mensagemErro && (
+                <AlertMessage 
+                    type="error" 
+                    message={mensagemErro} 
+                    onClose={() => setMensagemErro(null)} 
+                />
+            )}
+            {mensagemSucesso && (
+                <AlertMessage 
+                    type="success" 
+                    message={mensagemSucesso} 
+                    onClose={() => setMensagemSucesso(null)} 
+                />
+            )}
+
+            <header className="sticky top-0 z-50 w-full"><Menu /></header>
             <div className="flex flex-1"> 
                 <Sidebar />
                 <main className="flex-1 md:ml-64 p-6 md:p-12">
@@ -115,6 +135,9 @@ const CadastroMarca = () => {
                                         Nova Marca
                                     </h1>
                                 </div>
+                                <p className="text-slate-500 mt-2 font-medium">
+                                    Registre aqui as marcas dos produtos
+                                </p>
                             </header>
 
                             <div className="flex items-center gap-3">
@@ -123,15 +146,7 @@ const CadastroMarca = () => {
                                     <ListFilter className="w-4 h-4 text-indigo-600 group-hover:scale-110 transition-transform" />
                                     Listar Marcas
                                 </Link>
-                                <Link href="/dashboard" className="p-2.5 text-slate-400 hover:text-indigo-600 transition-colors">
-                                    <ArrowLeft className="w-5 h-5" />
-                                </Link>
                             </div>
-                        </div>
-                        
-                        <div className="mb-8">
-                            <AlertMessage type="error" message={mensagemErro} />
-                            <AlertMessage type="success" message={mensagemSucesso} />
                         </div>
 
                         <form onSubmit={processarEnvioFormulario} className="bg-white border border-slate-200 shadow-sm rounded-[2rem] p-8 md:p-12">

@@ -13,6 +13,7 @@ import React, { useEffect, useState } from 'react';
 interface Categoria {
     id: number;
     nome: string;
+    ativo: boolean;
 }
 
 const ListaDeCategorias = () => {
@@ -48,7 +49,7 @@ const ListaDeCategorias = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
-            <Menu />
+            <header className="sticky top-0 z-50 w-full"><Menu /></header>
             <div className="flex flex-1">
                 <Sidebar />
 
@@ -79,8 +80,8 @@ const ListaDeCategorias = () => {
                         </header>
 
                         <div className="mb-8">
-                            <AlertMessage type="error" message={error} />
-                            <AlertMessage type="success" message={success} />
+                            {error && <AlertMessage type="error" message={error} onClose={() => setError(null)} />}
+                            {success && <AlertMessage type="success" message={success} onClose={() => setSuccess(null)} />}
                         </div>
 
                         {loading ? (
@@ -95,7 +96,8 @@ const ListaDeCategorias = () => {
                                         <div key={categoria.id} 
                                             className="group bg-white border border-slate-200 p-5 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-50/40 transition-all duration-300">
                                             
-                                            <div className="flex items-center gap-4">
+                                            {/* SEÇÃO ESQUERDA: NOME E ÍCONE */}
+                                            <div className="flex items-center gap-4 flex-1">
                                                 <div className="relative shrink-0">
                                                     <div className="h-14 w-14 bg-gradient-to-tr from-slate-50 to-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 border border-indigo-100 group-hover:scale-105 transition-transform duration-300">
                                                         <Tag className="w-7 h-7" />
@@ -116,8 +118,23 @@ const ListaDeCategorias = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Ações da Categoria */}
-                                            <div className="flex items-center justify-end gap-1 pt-4 md:pt-0 border-t md:border-t-0 border-slate-50">
+                                            {/* SEÇÃO CENTRAL: STATUS (ENTRE NOME E DETALHES) */}
+                                            <div className="flex items-center px-4 md:border-l md:border-slate-100 h-10">
+                                                {categoria.ativo ? (
+                                                    <span className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-600 rounded-xl font-black uppercase text-[10px] border border-green-100 tracking-wider">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                                        Ativa
+                                                    </span>
+                                                ) : (
+                                                    <span className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-xl font-black uppercase text-[10px] border border-red-100 tracking-wider">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                                                        Inativa
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* SEÇÃO DIREITA: AÇÕES */}
+                                            <div className="flex items-center justify-end gap-1 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100">
                                                 <Link 
                                                     href={`/categoria/${categoria.id}`} 
                                                     className="group/btn flex items-center gap-2 px-3 py-2 text-slate-600 hover:bg-indigo-50 rounded-lg transition-all duration-300"
@@ -128,7 +145,7 @@ const ListaDeCategorias = () => {
                                                 </Link>
 
                                                 <Link 
-                                                    href={`/categoria/${categoria.id}/edit`} 
+                                                    href={`/categoria/${categoria.id}/edicao`} 
                                                     className="group/btn flex items-center gap-2 px-3 py-2 text-slate-600 hover:bg-amber-50 rounded-lg transition-all duration-300"
                                                     title="Editar Categoria"
                                                 >
