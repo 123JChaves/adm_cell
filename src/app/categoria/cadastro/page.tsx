@@ -6,10 +6,11 @@ import React, { useState, useEffect } from 'react';
 import AlertMessage from '@/src/utils/Alert';
 import Menu from '@/src/components/Menu';
 import Sidebar from '@/src/components/Sidebar';
+import Footer from "@/src/components/Footer";
 import { ArrowLeft, LayoutGrid, ListFilter, Save, Tag } from 'lucide-react';
 import Link from 'next/link';
 
-// 1. Interfaces Estritas (Sem Any)
+// Interfaces Estritas
 interface ICategoria {
     id: number;
     nome: string;
@@ -30,7 +31,7 @@ const CadastroCategoria = () => {
     const [success, setSuccess] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-    
+    // Sincronização inicial
     useEffect(() => {
         instancia.get<ICategoria[]>("/categorias")
             .then(resposta => setDbCategorias(resposta.data))
@@ -54,7 +55,7 @@ const CadastroCategoria = () => {
 
         const novosErros: Record<string, string> = {};
 
-        // 1. Validação Front-end (Sincronizada com o Backend)
+        // Validação Front-end
         if (!nome?.trim()) {
             novosErros.nome = "O nome da categoria é obrigatório!";
         } else if (nome[0] !== nome[0].toUpperCase()) {
@@ -68,30 +69,23 @@ const CadastroCategoria = () => {
 
         if (Object.keys(novosErros).length > 0) {
             setErros(novosErros);
-            setTimeout(() => {
-                setError("Verifique os erros no formulário.");
-            }, 10);
             return;
         }
 
         setIsSubmitting(true);
 
         try {
-           
             const resposta = await instancia.post("/categoria", { nome });
-            
-            
             setSuccess(resposta.data.message || "Nova categoria cadastrada com sucesso");
             setNome("");
             
-            
+            // Atualiza lista local após cadastro
             const atualizada = await instancia.get<ICategoria[]>("/categorias");
             setDbCategorias(atualizada.data);
 
         } catch (erro: unknown) {
             if (axios.isAxiosError(erro)) {
                 const axiosError = erro as AxiosError<ApiError>;
-    
                 setError(axiosError.response?.data?.message || "Erro interno ao cadastrar!");
             } else {
                 setError("Erro inesperado ao conectar com o servidor.");
@@ -134,8 +128,8 @@ const CadastroCategoria = () => {
                         </div>
                         
                         <div className="mb-8">
-                            <AlertMessage type="error" message={error} />
-                            <AlertMessage type="success" message={success} />
+                            {error && <AlertMessage type="error" message={error} />}
+                            {success && <AlertMessage type="success" message={success} />}
                         </div>
 
                         <form onSubmit={handleSubmit} className="bg-white border border-slate-200 shadow-sm rounded-[2rem] p-8 md:p-12">
@@ -182,6 +176,7 @@ const CadastroCategoria = () => {
                     </div>
                 </main>
             </div>
+            <Footer />
         </div>
     );
 };

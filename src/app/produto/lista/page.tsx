@@ -23,6 +23,7 @@ const ListaDeProdutos = () => {
                     </div>
                 </main>
             </div>
+            <Footer />
         </div>
     )
 }

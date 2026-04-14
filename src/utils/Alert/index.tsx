@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 interface AlertMessageProps {
     type: "success" | "error";
     message: string | null;
-    onClose: () => void;
+    onClose?: () => void;
 
 }
 

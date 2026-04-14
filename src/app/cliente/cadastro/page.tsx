@@ -22,6 +22,7 @@ const CadastroDeClientes = () => {
                         </div>
                     </div>
                 </main>
+                <Footer />
             </div>
         </div>
     );

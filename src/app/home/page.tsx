@@ -2,6 +2,7 @@
 
 import Menu from "@/src/components/Menu";
 import Sidebar from "@/src/components/Sidebar";
+import Footer from "@/src/components/Footer";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
@@ -46,6 +47,7 @@ const Home = () => {
                     <p className="mt-2 text-gray-600">Você está no painel de controle</p>
                 </main>
             </div>
+            <Footer />
         </div>
     );
 }

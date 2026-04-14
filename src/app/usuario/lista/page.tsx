@@ -2,6 +2,7 @@
 
 import Menu from "@/src/components/Menu"
 import Sidebar from "@/src/components/Sidebar";
+import Footer from "@/src/components/Footer";
 import instancia from "@/src/service/api";
 import AlertMessage from "@/src/utils/Alert";
 import DeleteButton from "@/src/utils/DeleteButton";
@@ -166,6 +167,7 @@ const ListaDeUsuario = () => {
                     </div>
                 </main>
             </div>
+            <Footer />
         </div>
     );
 }

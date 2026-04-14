@@ -22,6 +22,7 @@ const ListagemDeClientes = () => {
                         </div>
                     </div>
                 </main>
+                <Footer />
             </div>
         </div>
     );

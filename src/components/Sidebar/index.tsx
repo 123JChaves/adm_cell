@@ -1,43 +1,72 @@
 'use client'
 
-import { Boxes, HelpCircle, Home, Settings, SmartphoneCharging, Van } from "lucide-react";
+import { 
+    Boxes, 
+    HelpCircle, 
+    Home, 
+    Settings, 
+    SmartphoneCharging, 
+    Factory, 
+    Users
+} from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-const Sidebar = () => {
-    const menuItems = [
-        {name: 'Home', href: "/", icon: <Home size={20}/>},
-        {name: 'Produtos', href: "/produto/cadastro", icon: <SmartphoneCharging size={20}/>},
-        {name: 'Categorias', href: "/categoria/cadastro", icon: <Boxes size={20}/>},
-        {name: 'Fornecedores', href: "/fornecedor/lista", icon: <Van size={20} />},
-        {name: 'Configurações', href: "/configuracoes", icon: <Settings size={20} />}
-    ]
+const BarraLateral = () => {
+    const caminhoAtual = usePathname();
+
+    const itensDoMenu = [
+        { nome: 'Dashboard', rota: "/home", icone: Home },
+        { nome: 'Produtos', rota: "/produto/cadastro", icone: SmartphoneCharging },
+        { nome: 'Categorias', rota: "/categoria/cadastro", icone: Boxes },
+        { nome: 'Marcas', rota: "/marca/cadastro", icone: Factory },
+        { nome: 'Fornecedores', rota: "/fornecedor/cadastro", icone: Users },
+        { nome: 'Configurações', rota: "/configuracoes", icone: Settings }
+    ];
+
     return (
-            <aside className="w-64 h-screen bg-gray-50 border-r border-gray-200 fixed left-0 top-0 pt-20 hidden md:block">
-                <div className="flex flex-col h-full justify-between p-4">
-                    <nav className="space-y-2">
-                        {menuItems.map((item) => (
+        <aside className="w-64 h-screen bg-slate-900 border-r border-white/5 fixed left-0 top-0 pt-24 hidden md:block z-40 shadow-2xl">
+            <div className="flex flex-col h-full justify-between p-4">
+                <nav className="space-y-1.5">
+                    {itensDoMenu.map((itemIndividual) => {
+                        const estaAtivo = caminhoAtual === itemIndividual.rota;
+                        
+                        return (
                             <Link
-                                key={item.name}
-                                href={item.href}
-                                className="flex items-center space-x-3 p-3 text-gray-700 hover:bg-blue-100 hover:text-blue-600 rounded-lg transition-all duration-200 group"
+                                key={itemIndividual.nome}
+                                href={itemIndividual.rota}
+                                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 group relative ${
+                                    estaAtivo 
+                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' 
+                                    : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                                }`}
                             >
-                                <span className="text-gray-400 group-hover:text-purple-500">{item.icon}</span>
-                                <span className="font-medium">{item.name}</span>        
+                                <itemIndividual.icone 
+                                    size={20} 
+                                    className={`${estaAtivo ? 'text-white' : 'text-slate-500 group-hover:text-indigo-400'} transition-colors`} 
+                                />
+                                <span>{itemIndividual.nome}</span>
+
+                                {estaAtivo && (
+                                    <div className="absolute right-2 w-1.5 h-1.5 rounded-full bg-indigo-200 shadow-[0_0_8px_rgba(199,210,254,0.8)]" />
+                                )}
                             </Link>
-                        ))}
-                    </nav>
-                    <div className="mt-auto border-t border-gray-200 pt-4">
+                        );
+                    })}
+                </nav>
+
+                <div className="mt-auto border-t border-white/10 pt-4 mb-10">
                     <Link 
                         href="/suporte"
-                        className="flex items-center space-x-3 p-3 text-gray-500 hover:text-purple-600 transition-colors"
+                        className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-indigo-400 hover:bg-white/5 rounded-xl transition-all font-bold text-sm group"
                     >
-                        <HelpCircle size={20} />
-                        <span>Suporte</span>
+                        <HelpCircle size={20} className="group-hover:rotate-12 transition-transform" />
+                        <span>Centro de Suporte</span>
                     </Link>
                 </div>
-                </div>
-            </aside>
+            </div>
+        </aside>
     );
 }
 
-export default Sidebar;
+export default BarraLateral;

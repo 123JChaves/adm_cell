@@ -3,6 +3,7 @@
 import axios, { AxiosError } from 'axios';
 import Menu from "@/src/components/Menu"
 import Sidebar from "@/src/components/Sidebar";
+import Footer from "@/src/components/Footer";
 import instancia from "@/src/service/api";
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -41,7 +42,6 @@ const CadastroUsuario = () => {
     };
 
     const formatarCPF = (valor: string) => {
-    // 1. Remove tudo que não é número e limita a 11 dígitos
     const apenasNumeros = valor.replace(/\D/g, "").slice(0, 11);
 
     // 2. Aplica a máscara progressivamente
@@ -49,7 +49,7 @@ const CadastroUsuario = () => {
         .replace(/(\d{3})(\d)/, "$1.$2")       // 000.
         .replace(/(\d{3})(\d)/, "$1.$2")       // 000.000.
         .replace(/(\d{3})(\d{1,2})$/, "$1-$2"); // 000.000.000-00
-};
+    };
 
     const handleSubmit = async (evento: React.FormEvent<HTMLFormElement>): Promise<void> => {
         evento.preventDefault();
@@ -282,6 +282,7 @@ const CadastroUsuario = () => {
                     </div>
                 </main>
             </div>
+            <Footer />
         </div>
     );
 }

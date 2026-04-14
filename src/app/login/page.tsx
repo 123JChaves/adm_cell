@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import axios, { AxiosError } from 'axios';
 import { useState } from 'react';
@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import instancia from '@/src/service/api';
 import AlertMessage from '@/src/utils/Alert';
+import { LayoutDashboard, Lock, Mail } from 'lucide-react'; // Ícones para combinar
 
 interface ApiError {
     message: string;
@@ -22,31 +23,24 @@ const Login = () => {
     const handleLogin = async (evento: React.FormEvent) => {
         evento.preventDefault();
         setErro('');
-
         if (!email || !senha) {
             setErro("E-mail e senha são obrigatórios!");
             return;
         }
-
         setCarregando(true);
 
         try {
             const response = await instancia.post(`/login/${tipo}`, { email, senha });
             const data = response.data;
-
             Cookies.set('token', data.token, { expires: 1/3 });
             Cookies.set('userRole', tipo, { expires: 1/3 });
-
             const usuarioDados = tipo === 'admin' ? data.admin : data.usuario;
             localStorage.setItem('users', JSON.stringify(usuarioDados));
-
             router.push('/home');
-            
         } catch (erroCapturado) {
             if (axios.isAxiosError(erroCapturado)) {
                 const axiosError = erroCapturado as AxiosError<ApiError>;
-                const mensagem = axiosError.response?.data?.message || 'Falha ao autenticar';
-                setErro(mensagem);
+                setErro(axiosError.response?.data?.message || 'Falha ao autenticar');
             } else {
                 setErro("Erro de conexão com o servidor.");
             }
@@ -56,79 +50,92 @@ const Login = () => {
     };
 
     return (
-        <main className="flex flex-col justify-center items-center h-screen bg-gray-100 text-black">
+        <main className="flex flex-col justify-center items-center min-h-screen bg-slate-950 text-slate-200 p-4">
             
             {erro !== '' && (
-                <AlertMessage 
-                    type="error" 
-                    message={erro} 
-                    onClose={() => setErro('')} 
-                />
+                <AlertMessage type="error" message={erro} onClose={() => setErro('')} />
             )}
 
-            {/* Adicionado 'noValidate' para desativar os balões padrão do navegador */}
-            <form 
-                onSubmit={handleLogin} 
-                noValidate
-                className="flex flex-col gap-4 w-full max-w-sm bg-white p-8 shadow-lg rounded-xl border border-gray-200"
-            >
-                <h2 className="text-2xl font-bold mb-2 text-center text-blue-800">Acesso ao Sistema</h2>
-                
-                <div className="flex bg-gray-200 p-1 rounded-md mb-4">
-                    <button
-                        type="button"
-                        onClick={() => { setTipo('usuario'); setErro(''); }}
-                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${tipo === 'usuario' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
-                    >
-                        Usuário
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => { setTipo('admin'); setErro(''); }}
-                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${tipo === 'admin' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
-                    >
-                        Admin
-                    </button>
-                </div>
-
-                <div className="flex flex-col">
-                    <label className="text-sm font-semibold mb-1">E-mail:</label>
-                    <input
-                        type="email"
-                        placeholder="Ex: seu@email.com"
-                        value={email}
-                        onChange={(evento) => setEmail(evento.target.value)} 
-                        className="border p-2 rounded-md border-gray-300 focus:border-blue-500 outline-none transition-all"
-                    />
-                </div>
-                
-                <div className="flex flex-col">
-                    <label className="text-sm font-semibold mb-1">Senha:</label>
-                    <input
-                        type="password"
-                        placeholder="••••••••"
-                        value={senha}
-                        onChange={(evento) => setSenha(evento.target.value)} 
-                        className="border p-2 rounded-md border-gray-300 focus:border-blue-500 outline-none transition-all"
-                    />
-                </div>
-
-                {erro && (
-                    <div className="bg-red-50 p-2 rounded border border-red-200 text-center">
-                        <span className="text-red-500 text-xs font-bold uppercase">{erro}</span>
+            <div className="w-full max-w-md">
+                {/* Header do Login similar ao Icone do Footer */}
+                <div className="flex flex-col items-center mb-8">
+                    <div className="bg-indigo-600 p-3 rounded-2xl shadow-xl shadow-indigo-900/20 mb-4">
+                        <LayoutDashboard className="w-8 h-8 text-white" />
                     </div>
-                )}
+                    <h1 className="text-2xl font-black tracking-tight uppercase italic text-white">
+                        Adm Loja Cell
+                    </h1>
+                    <p className="text-slate-500 text-xs font-bold tracking-widest uppercase mt-2">
+                        Plataforma de Gestão
+                    </p>
+                </div>
 
-                <button 
-                    type="submit" 
-                    disabled={carregando} 
-                    className={`mt-4 p-3 rounded-md font-bold text-white transition-all shadow-md ${
-                        tipo === 'admin' ? 'bg-slate-800 hover:bg-slate-900' : 'bg-blue-600 hover:bg-blue-700'
-                    } disabled:bg-gray-400`}
+                <form 
+                    onSubmit={handleLogin} 
+                    noValidate
+                    className="bg-slate-900/50 backdrop-blur-xl p-8 shadow-2xl rounded-3xl border border-white/5 flex flex-col gap-5"
                 >
-                    {carregando ? 'Autenticando...' : `Entrar como ${tipo === 'admin' ? 'Administrador' : 'Usuário'}`}
-                </button>
-            </form>
+                    {/* Toggle de Tipo de Acesso */}
+                    <div className="flex bg-slate-800/50 p-1 rounded-xl mb-2">
+                        <button
+                            type="button"
+                            onClick={() => { setTipo('usuario'); setErro(''); }}
+                            className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all ${tipo === 'usuario' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                        >
+                            USUÁRIO
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => { setTipo('admin'); setErro(''); }}
+                            className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all ${tipo === 'admin' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                        >
+                            ADMIN
+                        </button>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">E-mail</label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                <input
+                                    type="email"
+                                    placeholder="seu@email.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)} 
+                                    className="w-full bg-slate-800/50 border border-white/5 pl-10 pr-4 py-3 rounded-xl text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/50 transition-all"
+                                />
+                            </div>
+                        </div>
+                        
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Senha</label>
+                            <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                                <input
+                                    type="password"
+                                    placeholder="••••••••"
+                                    value={senha}
+                                    onChange={(e) => setSenha(e.target.value)} 
+                                    className="w-full bg-slate-800/50 border border-white/5 pl-10 pr-4 py-3 rounded-xl text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/50 transition-all"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        disabled={carregando} 
+                        className="mt-2 w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 text-white py-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-[0.98] shadow-lg shadow-indigo-900/20"
+                    >
+                        {carregando ? 'Autenticando...' : 'Entrar no Sistema'}
+                    </button>
+                </form>
+
+                <p className="text-center mt-8 text-slate-600 text-[10px] font-bold tracking-widest uppercase">
+                    © {new Date().getFullYear()} Adm Loja Cell
+                </p>
+            </div>
         </main>
     );
 }
