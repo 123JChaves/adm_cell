@@ -221,7 +221,7 @@ const ListagemProdutos = () => {
                                                 </td>
 
                                                 <td className="p-6">
-                                                    <span className="px-2.5 py-1 bg-indigo-100 text-indigo-800 text-[9px] font-black rounded-lg border border-indigo-200 uppercase">
+                                                    <span className="px-2.5 py-1 bg-indigo-100 text-indigo-800 text-[9px] font-black rounded-lg border border-indigo-200 uppercase whitespace-nowrap">
                                                         {produtoIndividual.categoria.nome}
                                                     </span>
                                                 </td>

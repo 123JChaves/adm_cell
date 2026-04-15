@@ -62,7 +62,8 @@ const Menu = () => {
                                     
 
                                     {dropdownAtivo === itemIndividual.titulo && (
-                                        <div className="absolute left-0 mt-1 w-52 bg-white rounded-2xl shadow-2xl py-2 border border-slate-100 animate-in fade-in slide-in-from-top-2">
+                                        /* A classe 'before' abaixo cria a área de conexão invisível */
+                                        <div className="absolute left-0 mt-1 w-52 bg-white rounded-2xl shadow-2xl py-2 border border-slate-100 animate-in fade-in slide-in-from-top-2 before:absolute before:-top-4 before:left-0 before:w-full before:h-4 before:content-['']">
                                             <Link 
                                                 href={`/${itemIndividual.rota}/cadastro`} 
                                                 className="block px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
@@ -99,6 +100,7 @@ const Menu = () => {
             </div>
         </nav>
     );
+
 };
 
 export default Menu;

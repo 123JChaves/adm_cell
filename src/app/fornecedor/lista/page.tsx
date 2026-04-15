@@ -70,7 +70,9 @@ const ListaDeFornecedores = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
-            <Menu />
+            <header className="sticky top-0 z-50 w-full">
+                <Menu />
+            </header>
             
             {error && <AlertMessage type="error" message={error} onClose={() => setError(null)} />}
             {success && <AlertMessage type="success" message={success} onClose={() => setSuccess(null)} />}

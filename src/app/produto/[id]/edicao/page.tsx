@@ -7,7 +7,7 @@ import Menu from "@/src/components/Menu";
 import Sidebar from "@/src/components/Sidebar";
 import Footer from "@/src/components/Footer";
 import AlertMessage from "@/src/utils/Alert";
-import { Save, ArrowLeft, Smartphone, CheckCircle2, XCircle, Package } from "lucide-react";
+import { Save, ArrowLeft, Smartphone, CheckCircle2, XCircle, Package, Plus, Minus } from "lucide-react";
 
 const EditarDadosDoProdutoExistente = () => {
     const parametrosDaRota = useParams();
@@ -18,6 +18,11 @@ const EditarDadosDoProdutoExistente = () => {
     const [nomeDoProdutoParaEdicao, setNomeDoProdutoParaEdicao] = useState<string>("");
     const [valorDeVendaComMascara, setValorDeVendaComMascara] = useState<string>("");
     const [quantidadeEmEstoqueParaEdicao, setQuantidadeEmEstoqueParaEdicao] = useState<string>("");
+    
+    // Novas variáveis para controle de movimentação
+    const [quantidadeParaAdicionar, setQuantidadeParaAdicionar] = useState(0);
+    const [operacaoEstoque, setOperacaoEstoque] = useState<"somar" | "subtrair">("somar");
+
     const [descricaoDetalhadaParaEdicao, setDescricaoDetalhadaParaEdicao] = useState<string>("");
     const [statusAtivoDoProduto, setStatusAtivoDoProduto] = useState<boolean>(true);
     const [produtoSeraExibidoComoDestaque, setProdutoSeraExibidoComoDestaque] = useState<boolean>(false);
@@ -74,12 +79,25 @@ const EditarDadosDoProdutoExistente = () => {
         eventoDeEnvio.preventDefault();
         setMensagemDeErroDeProcessamento(null);
 
+        // Lógica de cálculo: soma ou subtrai do valor original vindo do banco
+        const estoqueBase = Number(quantidadeEmEstoqueParaEdicao);
+        const valorMovimentacao = Number(quantidadeParaAdicionar);
+        const estoqueFinalCalculado = operacaoEstoque === "somar" 
+            ? estoqueBase + valorMovimentacao 
+            : estoqueBase - valorMovimentacao;
+
+        // Garante que o estoque não seja enviado como número negativo
+        const estoqueSeguro = Math.max(0, estoqueFinalCalculado);
+
         const valorNumericoPuroParaBanco = Number(valorDeVendaComMascara.replace(/\D/g, "")) / 100;
 
         const formatadorDeDadosMultipart = new FormData();
         formatadorDeDadosMultipart.append("nome", nomeDoProdutoParaEdicao);
         formatadorDeDadosMultipart.append("preco", valorNumericoPuroParaBanco.toString());
-        formatadorDeDadosMultipart.append("quantidade", quantidadeEmEstoqueParaEdicao);
+        
+        // Envia o resultado do cálculo
+        formatadorDeDadosMultipart.append("quantidade", estoqueSeguro.toString());
+        
         formatadorDeDadosMultipart.append("descricao", descricaoDetalhadaParaEdicao);
         formatadorDeDadosMultipart.append("ativo", String(statusAtivoDoProduto));
         formatadorDeDadosMultipart.append("destaque", String(produtoSeraExibidoComoDestaque));
@@ -97,27 +115,20 @@ const EditarDadosDoProdutoExistente = () => {
         }
     };
 
-    if (estaCarregandoDadosDoServidor) {
-        return (
-            <div className="flex flex-col items-center justify-center h-screen bg-[#F8FAFC]">
-                <div className="font-black text-slate-400 uppercase italic animate-pulse">
-                    Sincronizando informações do produto...
-                </div>
-            </div>
-        );
-    }
 
-    return (
+        return (
         <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
             <header className="sticky top-0 z-50 w-full">
                 <Menu />
             </header>
             
             {mensagemDeErroDeProcessamento && (
-                <AlertMessage type="error" message={mensagemDeErroDeProcessamento} onClose={() => setMensagemDeErroDeProcessamento(null)} />
+                <AlertMessage type="error" message={mensagemDeErroDeProcessamento} 
+                onClose={() => setMensagemDeErroDeProcessamento(null)} />
             )}
             {mensagemDeSucessoDeProcessamento && (
-                <AlertMessage type="success" message={mensagemDeSucessoDeProcessamento} onClose={() => setMensagemDeSucessoDeProcessamento(null)} />
+                <AlertMessage type="success" message={mensagemDeSucessoDeProcessamento} 
+                onClose={() => setMensagemDeSucessoDeProcessamento(null)} />
             )}
 
             <div className="flex flex-1">
@@ -158,13 +169,40 @@ const EditarDadosDoProdutoExistente = () => {
                                     />
                                 </div>
 
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-black text-slate-700 uppercase ml-1 tracking-widest">Quantidade em Unidades</label>
-                                    <input 
-                                        type="number" value={quantidadeEmEstoqueParaEdicao} 
-                                        onChange={(eventoDeMudanca) => setQuantidadeEmEstoqueParaEdicao(eventoDeMudanca.target.value)}
-                                        className="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-500/10 font-bold transition-all"
-                                    />
+                                <div className="grid grid-cols-2 gap-4">
+                                    {/* Campo 1: Estoque Atual (Apenas Leitura) */}
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-1 tracking-widest">
+                                            Estoque Atual
+                                        </label>
+                                        <div className="w-full p-4 rounded-2xl border border-slate-200 bg-slate-100 text-slate-500 font-bold flex items-center gap-2 cursor-not-allowed">
+                                            <Package className="w-4 h-4" /> {quantidadeEmEstoqueParaEdicao} unidades
+                                        </div>
+                                    </div>
+
+                                    {/* Campo 2: Movimentação (Soma/Subtração e Sem Zero à Esquerda) */}
+                                    <div className="flex flex-col gap-2">
+                                        <label className={`text-[10px] font-black uppercase ml-1 tracking-widest ${operacaoEstoque === 'somar' ? 'text-indigo-600' : 'text-red-600'}`}>
+                                            {operacaoEstoque === 'somar' ? 'Somar Itens' : 'Subtrair Itens'}
+                                        </label>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setOperacaoEstoque(previa => previa === 'somar' ? 'subtrair' : 'somar')}
+                                                className={`flex items-center justify-center w-12 rounded-xl border transition-all ${operacaoEstoque === 'somar' ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-red-50 border-red-200 text-red-600'}`}
+                                            >
+                                                {operacaoEstoque === 'somar' ? <Plus className="w-4 h-4" /> : <Minus className="w-4 h-4" />}
+                                            </button>
+                                            <input 
+                                                type="number" 
+                                                min="0"
+                                                placeholder="0"
+                                                value={quantidadeParaAdicionar === 0 ? "" : quantidadeParaAdicionar} 
+                                                onChange={(eventoDeAdicao) => setQuantidadeParaAdicionar(eventoDeAdicao.target.value === "" ? 0 : Number(eventoDeAdicao.target.value))}
+                                                className={`w-full p-4 rounded-2xl border outline-none font-bold transition-all focus:ring-4 ${operacaoEstoque === 'somar' ? 'border-indigo-200 focus:border-indigo-600 focus:ring-indigo-500/10 text-indigo-700' : 'border-red-200 focus:border-red-600 focus:ring-red-500/10 text-red-700'}`}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="flex flex-col gap-3">
